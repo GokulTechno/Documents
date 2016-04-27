@@ -1,0 +1,108 @@
+
+---->QT Source compiling Commands
+
+export MY_CC_QT4_PREFIX=/home/elinux/QTouput
+
+
+./configure -prefix ${MY_CC_QT4_PREFIX} -release -opensource -shared -qconfig dist -no-exceptions -no-accessibility -no-stl -no-qt3support -no-xmlpatterns -multimedia -no-audio-backend -no-phonon -no-phonon-backend -no-svg -no-webkit -no-javascript-jit -no-script -no-scripttools -no-declarative -no-declarative-debug -qt-zlib -qt-freetype -no-gif -qt-libpng -no-libmng -no-libtiff -qt-libjpeg -no-openssl -nomake tools -nomake demos -nomake examples -nomake docs -nomake translations -no-nis -no-cups -no-iconv -no-pch -no-dbus -embedded arm -platform qws/linux-x86-g++ -xplatform qws/linux-nuc970-g++ -no-gtkstyle -no-nas-sound -no-opengl -no-openvg -no-sm -no-xshape -no-xvideo -no-xsync -no-xinerama -no-xcursor -no-xfixes -no-xrandr -no-xrender -no-mitshm -no-fontconfig -no-xinput -no-xkb -no-glib -qt-gfx-linuxfb -qt-mouse-tslib -qt-kbd-linuxinput -qt-sql
+**************************************************************************************************************
+------>Qt Application Command in target
+export QWS_MOUSE_PROTO=Tslib:/dev/input/event0
+
+trivialwizard -qws
+
+**************************************************************************************************************
+
+./configure --prefix=$PWD/../build CC=arm-linux-gcc --host=arm-linux --build=i386-linux --with-osname=linux --with-targetname=fbcon --disable-pcxvfb --enable-videonuc970 --enable-videofbcon --enable-autoial --disable-vbfsupport --disable-screensaver
+
+
+export PKG_CONFIG_PATH="$PWD/../build/lib/pkgconfig"
+
+./configure --prefix=$PWD/../build CC=arm-linux-gcc --host=arm-linux --build=i386-linux CFLAGS=-I$PWD/../build/include
+
+**************************************************************************************************************
+------>Changing owner permission
+
+sudo chown elinux:elinux -R Source/
+
+**************************************************************************************************************
+
+./aplay -c 2 -f S16_LE alsa/8k2ch.pcm
+
+**************************************************************************************************************
+IntelliMouse:/dev/input/mouse1
+**************************************************************************************************************
+./configure --host=arm-linux --prefix=/tmp/files/
+
+./configure --host=arm-poky-linux-gnueabi --prefix=/tmp/lynx/
+**************************************************************************************************************
+mount /dev/sda3 /media/disk
+flash_eraseall -j /dev/mtd2
+nandwrite -p /dev/mtd2 /media/disk/ubi.img
+ubiattach /dev/ubi_ctrl -m 2 -O 2048
+
+**************************************************************************************************************
+at+cgmi= Device information
+at+cgmr= Device revision
+at+cgsn= Serial number
+at+csq= signal strength
+at+cops? = Carrier information
+at+creg? = GPRS information
+	0,0 Trying to attach
+	0,1 Attached 
+	0,2 Failed and stopped 
+	0,3 Banned Networks
+	0,5 Logged in and roaming
+at+cgncont=1,"IP","proxy/APN address"= Set APN
+**************************************************************************************************************
+GSM VIRUAL PORTS SETTINGS
+*************************
+mkdir /dev/pts
+mount -t devpts -o newinstance devpts /dev/pts
+mount -o bind /dev/pts/ptmx /dev/ptmx
+chmod 666 dev/pts/*
+gsmMuxd -p /dev/ttyS2 -w -r -s /dev/mux /dev/ptmx /dev/ptmx /dev/ptmx 2>/dev/null &
+
+**************************************************************************************************************
+
+scp -r <Source file/directory> elinux1@192.168.0.70:<Destination file/directory>
+
+**************************************************************************************************************
+
+sudo modprobe fbtft_device custom name=adafruit28 gpios=reset:37,dc:36,led:34,wr:133,db00:132,db01:131
+
+**************************************************************************************************************
+
+make modules_install INSTALL_MOD_PATH=MOD-LAST
+
+**************************************************************************************************************
+
+if usb start;then echo "usb started";if fatls usb 0:1;then echo "usb files detected";else echo "usb files not detected";fi;fi
+
+setenv usb_bootargs 'setenv bootargs 'rootfstype=ext4 root=/dev/sda2 rw console=ttyS0,115200n8 rootwait rdinit=/sbin/init mtdparts=nand0:2M(u-boot),5M(kernel),-(rootfs) mem=64M''
+
+setenv nand_bootargs 'setenv bootargs 'noinitrd mtdparts=nand0:2M(u-boot-spl)ro,5M(kernel),-(rootfs) ubi.mtd=2 root=ubi0:system rw rootfstype=ubifs console=ttyS0,115200n8 rdinit=/sbin/init mem=64M''
+
+if usb start;then echo "usb started";if fatls usb 0:1;then fatload usb 0:1 0x7fc0 uimage;nand write 0x7fc0 0x200000 ${filesize}; run usb_bootargs; saveenv; bootm 0x7fc0;else echo "usb not detected"; run nand_bootargs; nboot 0x7fc0 0 0x200000; saveenv;fi;fi
+
+**************************************************************************************************************
+BOOT SCRIPT
+***********
+baudrate=115200
+bootargs=rootfstype=ext4 root=/dev/sda2 rw console=ttyS0,115200n8 rootwait rdinit=/sbin/init mtdparts=
+nand0:1M(u-boot-spl)ro,5M(u-boot)ro,-(rootfs) mem=64M
+bootcmd=usb start; run bootscript;
+bootdelay=1
+bootscript=if fatls usb 0:1; && fatload usb 0:1 0x7fc0 uimage; then echo "USB DETECTED & BOOTING USB..."; run usb_bootargs; saveenv; bootm 0x7fc0;else echo "NAND BOOTING..."; nboot 0x7fc0 0 0x200000; run nand_bootargs; saveenv; bootm 0x7fc0;fi
+ethact=emac
+ethaddr=00:00:00:11:66:88
+filesize=2b59e0
+nand_bootargs=setenv bootargs 'noinitrd mtdparts=nand0:1M(u-boot)ro,5M(kernel)ro,-(rootfs) ubi.mtd=2 root=ubi0:system rw rootfstype=ubifs console=ttyS0,115200n8 rdinit=/sbin/init mem=64M quiet'
+stderr=serial
+stdin=serial
+stdout=serial
+usb_bootargs=setenv bootargs 'rootfstype=ext4 root=/dev/sda2 rw console=ttyS0,115200n8 rootwait rdinit=/sbin/init mtdparts=nand0:2M(u-boot),5M(kernel),-(rootfs) mem=64M quiet'
+*************************************************************************************************************
+mkfs.ubifs -F -x lzo -m 2048 -e 126976 -c 2048 -o rootfs_ubifs.img -d ./rootfs-25april
+ubinize -o ubi.img -m 2048 -p 131072 -O 2048 -s 2048 mtd-utils/mkfs.ubifs/rootfs_ubinize.cfg
+*************************************************************************************************************
